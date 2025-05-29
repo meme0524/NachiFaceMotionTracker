@@ -1,3 +1,4 @@
+#.gitignore 
 # Pythonによって自動生成されるキャッシュ
 __pycache__/
 *.py[cod]
@@ -42,10 +43,14 @@ face_motion_receiver/UserSettings/
 
 # Unityプロジェクト全体を除外
 face_motion_receiver/**
+# Unityの .meta ファイル除外（Scripts内は除く）
+face_motion_receiver/**/*.meta
+!face_motion_receiver/Assets/Scripts/**/*.meta
 
 # ただし Scripts フォルダだけは追跡対象にする
 !face_motion_receiver/Assets/
 !face_motion_receiver/Assets/Scripts/
 !face_motion_receiver/Assets/Scripts/**/*.cs
+
 
 
