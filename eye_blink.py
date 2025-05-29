@@ -78,7 +78,7 @@ while cap.isOpened():
     # ESCキーで終了
     if cv2.waitKey(1) & 0xFF == 27:
         break
-    # ばつ印で終了
+    # ウィンドウが閉じられた場合も終了
     if cv2.getWindowProperty("Eye Blink Detection - press ESC to exit", cv2.WND_PROP_VISIBLE) < 1:
         break
 
