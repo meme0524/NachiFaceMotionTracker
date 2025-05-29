@@ -24,3 +24,28 @@ desktop.ini
 
 # シークレットファイル（もし今後使うなら）
 .env
+
+# Unity関連の一時ファイルを除外
+face_motion_receiver/Library/
+face_motion_receiver/Temp/
+face_motion_receiver/Obj/
+face_motion_receiver/Build/
+face_motion_receiver/Logs/
+face_motion_receiver/UserSettings/
+
+# Visual Studio関連
+*.csproj
+*.sln
+*.user
+.vscode/
+
+
+# Unityプロジェクト全体を除外
+face_motion_receiver/**
+
+# ただし Scripts フォルダだけは追跡対象にする
+!face_motion_receiver/Assets/
+!face_motion_receiver/Assets/Scripts/
+!face_motion_receiver/Assets/Scripts/**/*.cs
+
+
