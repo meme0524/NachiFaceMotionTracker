@@ -51,7 +51,7 @@ while cap.isOpened():
 
             # ----- 目の開閉状態（EAR）計算 -----
             ear = calculate_ear(face_landmarks.landmark, LEFT_EYE_INDICES, w, h)
-            eye_status = "Closed" if ear < 0.2 else "Open"
+            eye_status = "Open" if ear < 0.25 else "Closed"
             cv2.putText(frame, f"Eye: {eye_status} ({ear:.2f})", (30, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (0, 255, 0) if eye_status == "Open" else (0, 0, 255), 2)
@@ -63,8 +63,11 @@ while cap.isOpened():
                         cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (0, 255, 255) if mouth_status == "Open" else (100, 100, 100), 2)
             
-        message = f"eye:{eye_status.lower()},mouth:{mouth_status.lower()}"
+        eye_flag = "0" if eye_status == "Closed" else "1"
+        mouth_flag = "1" if mouth_status == "Open" else "0"
+        message = f"{eye_flag},{eye_flag},{mouth_flag}"  # 両目同じにする
         sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
+
         
 
     # ----------- ユーザー向けの案内表示 -----------

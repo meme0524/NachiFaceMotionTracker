@@ -1,3 +1,6 @@
+// UDPReceiver.cs
+// Description: A Unity script to receive UDP packets safely and provide access to the latest received data.
+
 using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
@@ -10,6 +13,9 @@ public class UDPReceiver : MonoBehaviour
     Thread receiveThread;
     public int port = 5005;
     public string lastReceivedUDPPacket = "";
+    public bool debugLog = true;
+
+    private bool isRunning = true;
 
     void Start()
     {
@@ -22,28 +28,49 @@ public class UDPReceiver : MonoBehaviour
     void ReceiveData()
     {
         IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, port);
-        while (true)
+        while (isRunning)
         {
             try
             {
                 byte[] data = client.Receive(ref anyIP);
                 lastReceivedUDPPacket = Encoding.UTF8.GetString(data);
             }
+            catch (SocketException socketEx)
+            {
+                if (isRunning) // ソケットが閉じられると例外が出るため
+                    Debug.LogError($"SocketException: {socketEx}");
+            }
             catch (System.Exception err)
             {
-                Debug.LogError(err.ToString());
+                Debug.LogError($"Exception: {err}");
             }
         }
     }
 
     void Update()
     {
-        Debug.Log($"Received: {lastReceivedUDPPacket}");
+        if (debugLog && !string.IsNullOrEmpty(lastReceivedUDPPacket))
+        {
+            //Debug.Log($"[UDPReceiver] Raw Received: [{lastReceivedUDPPacket}]");
+        }
+    }
+
+
+    public string[] GetDataParts(char delimiter = ',')
+    {
+        return lastReceivedUDPPacket.Split(delimiter);
     }
 
     void OnApplicationQuit()
     {
-        receiveThread.Abort();
-        client.Close();
+        isRunning = false;
+        if (client != null)
+        {
+            client.Close();
+        }
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            receiveThread.Join(); // 安全に終了を待つ
+        }
     }
 }
