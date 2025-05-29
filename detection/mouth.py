@@ -2,7 +2,7 @@
 
 import numpy as np
 # MediaPipeの口の6点インデックス
-MOUTH_INDICES = [78, 81, 13, 311, 308, 402]
+MOUTH_INDICES = [78, 81, 13, 311, 82, 87]
 
 def calculate_mar(landmarks, image_width, image_height):
     """
@@ -21,7 +21,7 @@ def calculate_mar(landmarks, image_width, image_height):
     bottom_out = to_np(MOUTH_INDICES[5])
 
     vertical = np.linalg.norm(top_in - bottom_in) + np.linalg.norm(top_out - bottom_out)
-    horizontal = 2.0 * np.linalg.norm(left - right)
+    horizontal = np.linalg.norm(left - right)
 
     mar = vertical / horizontal
     return mar

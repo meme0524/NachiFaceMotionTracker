@@ -4,6 +4,8 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import socket  # ← UDP用モジュール追加
+
 
 # 目のEAR計算用関数とランドマーク定義をインポート
 from detection.eye import calculate_ear, LEFT_EYE_INDICES
@@ -18,6 +20,13 @@ face_mesh = mp_face_mesh.FaceMesh(
 
 # ----------- カメラの起動 -----------
 cap = cv2.VideoCapture(0)  # 0番カメラ（通常は内蔵カメラ）
+
+# ----------- UDPソケットの設定 -----------
+# Unity側の受信設定に合わせる
+UDP_IP = "127.0.0.1"
+UDP_PORT = 5005
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
 
 # ----------- メインループ（毎フレーム処理）-----------
 while cap.isOpened():
@@ -50,12 +59,16 @@ while cap.isOpened():
             # ----- 口の開閉状態（MAR）計算 -----
             mar = calculate_mar(face_landmarks.landmark, w, h)
             mouth_status = "Open" if mar > 0.5 else "Closed"
-            cv2.putText(frame, f"Mouth: {mouth_status} ({mar:.2f})", (30, 130),
+            cv2.putText(frame, f"Mouth: {mouth_status} ({mar:.2f})", (30, 90),
                         cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (0, 255, 255) if mouth_status == "Open" else (100, 100, 100), 2)
+            
+        message = f"eye:{eye_status.lower()},mouth:{mouth_status.lower()}"
+        sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
+        
 
     # ----------- ユーザー向けの案内表示 -----------
-    cv2.putText(frame, "Press ESC to exit", (30, 90),
+    cv2.putText(frame, "Press ESC to exit", (30, 130),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
 
     # ----------- ウィンドウ表示と終了処理 -----------
@@ -70,4 +83,5 @@ while cap.isOpened():
 
 # ----------- 終了処理 -----------
 cap.release()
+sock.close()
 cv2.destroyAllWindows()
