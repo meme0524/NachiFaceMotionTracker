@@ -18,5 +18,10 @@ def calculate_ear(landmarks, eye_indices, image_width, image_height):
     p1, p2, p3, p4, p5, p6 = coords
     vertical = np.linalg.norm(p2 - p6) + np.linalg.norm(p3 - p5)
     horizontal = 2.0 * np.linalg.norm(p1 - p4)
+
+    # 横方向の距離が0の場合は計算できないので0を返す
+    if horizontal == 0:
+        return 0.0
+
     ear = vertical / horizontal
     return ear

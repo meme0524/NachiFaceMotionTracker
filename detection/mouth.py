@@ -23,5 +23,9 @@ def calculate_mar(landmarks, image_width, image_height):
     vertical = np.linalg.norm(top_in - bottom_in) + np.linalg.norm(top_out - bottom_out)
     horizontal = np.linalg.norm(left - right)
 
+    # 左右端の距離が0の場合は計算できないので0を返す
+    if horizontal == 0:
+        return 0.0
+
     mar = vertical / horizontal
     return mar
