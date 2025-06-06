@@ -3,10 +3,7 @@
 import numpy as np
 
 # MediaPipeの左目の6点インデックス
-
-LEFT_EYE_INDICES  = [33, 160, 158, 133, 153, 144]   # [outer, top-outer, top-inner, inner, bottom-inner, bottom-outer]
-RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380]  # ミラー版
-
+LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144]  # [p1, p2, p3, p4, p5, p6]
 
 def calculate_ear(landmarks, eye_indices, image_width, image_height):
     vertical = 0
