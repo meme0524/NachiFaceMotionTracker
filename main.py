@@ -6,7 +6,7 @@ import mediapipe as mp
 import numpy as np
 
 # 目のEAR計算用関数とランドマーク定義をインポート
-from detection.eye import calculate_ear, LEFT_EYE_INDICES
+from detection.eye import calculate_ear, LEFT_EYE_INDICES, RIGHT_EYE_INDICES
 from detection.mouth import calculate_mar  # 👈 口検出の関数も忘れずにインポート
 
 # ----------- MediaPipeの初期化 -----------
@@ -41,11 +41,26 @@ while cap.isOpened():
             h, w, _ = frame.shape  # 画像サイズ取得
 
             # ----- 目の開閉状態（EAR）計算 -----
-            ear = calculate_ear(face_landmarks.landmark, LEFT_EYE_INDICES, w, h)
-            eye_status = "Closed" if ear < 0.2 else "Open"
-            cv2.putText(frame, f"Eye: {eye_status} ({ear:.2f})", (30, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1,
-                        (0, 255, 0) if eye_status == "Open" else (0, 0, 255), 2)
+            left_ear = calculate_ear(face_landmarks.landmark,
+                                     LEFT_EYE_INDICES, w, h)
+            right_ear = calculate_ear(face_landmarks.landmark,
+                                      RIGHT_EYE_INDICES, w, h)
+            left_status = "Closed" if left_ear < 0.2 else "Open"
+            right_status = "Closed" if right_ear < 0.2 else "Open"
+            cv2.putText(frame,
+                        f"Left Eye: {left_status} ({left_ear:.2f})",
+                        (30, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1,
+                        (0, 255, 0) if left_status == "Open" else (0, 0, 255),
+                        2)
+            cv2.putText(frame,
+                        f"Right Eye: {right_status} ({right_ear:.2f})",
+                        (30, 90),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1,
+                        (0, 255, 0) if right_status == "Open" else (0, 0, 255),
+                        2)
 
             # ----- 口の開閉状態（MAR）計算 -----
             mar = calculate_mar(face_landmarks.landmark, w, h)
@@ -55,7 +70,7 @@ while cap.isOpened():
                         (0, 255, 255) if mouth_status == "Open" else (100, 100, 100), 2)
 
     # ----------- ユーザー向けの案内表示 -----------
-    cv2.putText(frame, "Press ESC to exit", (30, 90),
+    cv2.putText(frame, "Press ESC to exit", (30, 170),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
 
     # ----------- ウィンドウ表示と終了処理 -----------
