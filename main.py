@@ -7,7 +7,7 @@ import numpy as np
 
 # 目のEAR計算用関数とランドマーク定義をインポート
 from detection.eye import calculate_ear, LEFT_EYE_INDICES, RIGHT_EYE_INDICES
-from detection.mouth import calculate_mar  # 👈 口検出の関数も忘れずにインポート
+from detection.mouth import calculate_mar
 
 # ----------- MediaPipeの初期化 -----------
 mp_face_mesh = mp.solutions.face_mesh
