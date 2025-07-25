@@ -1,18 +1,6 @@
-# Eye Blink Project
-
+# face_motion_tracker for Unity
 **Webカメラで顔の動きをトラッキングして、Unityアバターに反映するプロジェクト**  
 目の開閉（EAR）や口の開閉（MAR）をリアルタイムで検出し、UDPでUnityに送信します。
-
----
-# プロジェクト構成
-face_motion_tracker/
-├── main.py # メインスクリプト（顔トラッキング + UDP送信）
-├── send_test.py # UDP送信用の簡易テストスクリプト
-├── detection/
-│ ├── eye.py # 目の開閉度（EAR）の計算
-│ └── mouth.py # 口の開閉度（MAR）の計算
-├── face_motion_receiver/ # Unityプロジェクト（Assets/Scripts のみ Git管理）
-└── ...
 
 ---
 
