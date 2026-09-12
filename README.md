@@ -4,16 +4,14 @@
 
 ---
 
-## ✅ 現在の進捗
+## 現在の進捗
 
 - Webカメラから目の開閉（EAR）と口の開閉（MAR）をリアルタイムで検出
 - UnityにUDPで状態（open/closed）を送信する機能を実装
 - Unity側では UDPReceiver.cs により受信可能
-- 有料モデルや不要ファイルは `.gitignore` によって安全に除外済み
-
 ---
 
-## 🚀 使用技術
+## 使用技術
 
 - Python 3.8+
   - OpenCV
