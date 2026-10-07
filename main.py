@@ -8,7 +8,7 @@ import socket
 
 # 目のEAR計算用関数とランドマーク定義をインポート
 from detection.eye import calculate_ear, LEFT_EYE_INDICES, RIGHT_EYE_INDICES
-from detection.mouth import calculate_mar  # 👈 口検出の関数も忘れずにインポート
+from detection.mouth import calculate_mar
 
 # ----------- MediaPipeの初期化 -----------
 mp_face_mesh = mp.solutions.face_mesh
@@ -24,6 +24,21 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # ----------- カメラの起動 -----------
 cap = cv2.VideoCapture(0)  # 0番カメラ（通常は内蔵カメラ）
+
+# ----------- キャリブレーション用変数 -----------
+calibrated = False
+sampling_state = "eye_open"  # eye_open -> eye_close -> mouth_open -> done
+frame_counter = 0
+SAMPLE_FRAMES = 100
+ear_open_left = []
+ear_close_left = []
+ear_open_right = []
+ear_close_right = []
+mar_open_list = []
+mar_close_list = []
+thr_left = 0.2
+thr_right = 0.2
+thr_mar = 0.5
 
 # ----------- メインループ（毎フレーム処理）-----------
 while cap.isOpened():
@@ -47,26 +62,74 @@ while cap.isOpened():
             h, w, _ = frame.shape  # 画像サイズ取得
 
             # ----- 目の開閉状態（EAR）計算 -----
-            ear_left = calculate_ear(face_landmarks.landmark, LEFT_EYE_INDICES, w, h)
-            ear_right = calculate_ear(face_landmarks.landmark, RIGHT_EYE_INDICES, w, h)
-            eye_status_left = "Closed" if ear_left < 0.2 else "Open"
-            eye_status_right = "Closed" if ear_right < 0.2 else "Open"
-            cv2.putText(frame, f"L Eye: {eye_status_left} ({ear_left:.2f})", (30, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1,
-                        (0, 255, 0) if eye_status_left == "Open" else (0, 0, 255), 2)
-            cv2.putText(frame, f"R Eye: {eye_status_right} ({ear_right:.2f})", (30, 90),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1,
-                        (0, 255, 0) if eye_status_right == "Open" else (0, 0, 255), 2)
+            left_ear = calculate_ear(face_landmarks.landmark,
+                                     LEFT_EYE_INDICES, w, h)
+            right_ear = calculate_ear(face_landmarks.landmark,
+                                      RIGHT_EYE_INDICES, w, h)
 
             # ----- 口の開閉状態（MAR）計算 -----
             mar = calculate_mar(face_landmarks.landmark, w, h)
-            mouth_status = "Open" if mar > 0.5 else "Closed"
+
+            # ----- キャリブレーション処理 -----
+            if not calibrated:
+                if sampling_state == "eye_open":
+                    ear_open_left.append(left_ear)
+                    ear_open_right.append(right_ear)
+                    mar_close_list.append(mar)
+                    frame_counter += 1
+                    cv2.putText(frame, "Calibrating: keep eyes OPEN", (30, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+                    if frame_counter >= SAMPLE_FRAMES:
+                        sampling_state = "eye_close"
+                        frame_counter = 0
+                        print("→ 開眼サンプル完了。続いて目を閉じてください。")
+                    continue
+
+                if sampling_state == "eye_close":
+                    ear_close_left.append(left_ear)
+                    ear_close_right.append(right_ear)
+                    mar_close_list.append(mar)
+                    frame_counter += 1
+                    cv2.putText(frame, "Calibrating: keep eyes CLOSED", (30, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+                    if frame_counter >= SAMPLE_FRAMES:
+                        sampling_state = "mouth_open"
+                        frame_counter = 0
+                        print("→ 目閉じサンプル完了。続いて口を開いてください。")
+                    continue
+
+                if sampling_state == "mouth_open":
+                    mar_open_list.append(mar)
+                    frame_counter += 1
+                    cv2.putText(frame, "Calibrating: open mouth", (30, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+                    if frame_counter >= SAMPLE_FRAMES:
+                        thr_left = (np.mean(ear_open_left) + np.mean(ear_close_left)) / 2
+                        thr_right = (np.mean(ear_open_right) + np.mean(ear_close_right)) / 2
+                        thr_mar = (np.mean(mar_open_list) + np.mean(mar_close_list)) / 2
+                        calibrated = True
+                        print(
+                            f"→ キャリブレーション完了! eye_left={thr_left:.3f} eye_right={thr_right:.3f} mouth={thr_mar:.3f}"
+                        )
+                    continue
+
+            # ----- キャリブレーション後の判定 -----
+            left_status = "Closed" if left_ear < thr_left else "Open"
+            right_status = "Closed" if right_ear < thr_right else "Open"
+            mouth_status = "Open" if mar > thr_mar else "Closed"
+
+            cv2.putText(frame, f"Left Eye: {left_status} ({left_ear:.2f})", (30, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (0, 255, 0) if left_status == "Open" else (0, 0, 255), 2)
+            cv2.putText(frame, f"Right Eye: {right_status} ({right_ear:.2f})", (30, 90),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (0, 255, 0) if right_status == "Open" else (0, 0, 255), 2)
             cv2.putText(frame, f"Mouth: {mouth_status} ({mar:.2f})", (30, 130),
                         cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (0, 255, 255) if mouth_status == "Open" else (100, 100, 100), 2)
 
             # ----- Unityへデータ送信 -----
-            msg = f"{ear_left:.2f},{ear_right:.2f},{mar:.2f}"
+            msg = f"{left_ear:.2f},{right_ear:.2f},{mar:.2f}"
             sock.sendto(msg.encode('utf-8'), (UDP_IP, UDP_PORT))
 
     # ----------- ユーザー向けの案内表示 -----------

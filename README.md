@@ -1,33 +1,43 @@
-# Eye Blink Project
-
-顔のトラッキングを使って、目が閉じているかどうかをリアルタイムで判定するアプリケーションです。  
-MediaPipeとOpenCVを用いたPythonスクリプトで動作し、将来的にはUnityと連携し、3Dモデルに表情を反映させることを目指しています。
+# face_motion_tracker for Unity
+**Webカメラで顔の動きをトラッキングして、Unityアバターに反映するプロジェクト**  
+目の開閉（EAR）や口の開閉（MAR）をリアルタイムで検出し、UDPでUnityに送信します。
 
 ---
 
 ## ✅ 現在の進捗
 
-- [x] Webカメラから顔を検出
-- [x] EAR（Eye Aspect Ratio）による目の開閉判定
-- [x] ESCキーでウィンドウを閉じられる
-- [x] ウィンドウに案内メッセージを表示
-- [ ] Unityとのリアルタイム連携（UDP通信）
-- [ ] 3Dモデル（BlendShape）の制御
+- Webカメラから目の開閉（EAR）と口の開閉（MAR）をリアルタイムで検出
+- UnityにUDPで状態（open/closed）を送信する機能を実装
+- Unity側では UDPReceiver.cs により受信可能
+- 有料モデルや不要ファイルは `.gitignore` によって安全に除外済み
 
 ---
 
 ## 🚀 使用技術
 
-- Python 3.x
-- OpenCV
-- MediaPipe
-- NumPy
-- Git / GitHub
+- Python 3.8+
+  - OpenCV
+  - MediaPipe
+  - socket（UDP通信）
+- Unity 2022.3.22f1（Built-in Render Pipeline）
+  - C#（UDP受信処理）
+  - VRChat SDK対応プロジェクトとして構成
+- Git / GitHub（バージョン管理）
 
 ---
 
 ## 🔧 実行方法
 
-```bash
-pip install opencv-python mediapipe numpy
-python eye_blink.py
+### ▶ Python側
+
+Webカメラが起動し、顔のランドマークが検出されます。
+目の開閉状態（EAR）と口の開閉状態（MAR）が表示され、UDPで送信されます。
+```powershell
+python main.py
+
+### ▶ Unity側
+face_motion_receiver/Assets/Scripts/UDPReceiver.cs を GameObject にアタッチ
+
+シーンを再生（Play）して、受信状態を確認
+
+受信内容に応じて、アバターの表情制御などへ拡張可能
