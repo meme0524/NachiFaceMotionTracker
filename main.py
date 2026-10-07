@@ -4,6 +4,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import socket
 
 # 目のEAR計算用関数とランドマーク定義をインポート
 from detection.eye import calculate_ear, LEFT_EYE_INDICES, RIGHT_EYE_INDICES
@@ -15,6 +16,11 @@ face_mesh = mp_face_mesh.FaceMesh(
     static_image_mode=False,  # 動画用モード（連続検出）
     max_num_faces=1           # 検出する顔は1つだけ
 )
+
+# ----------- UnityへのUDP送信設定 -----------
+UDP_IP = "127.0.0.1"
+UDP_PORT = 5005
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # ----------- カメラの起動 -----------
 cap = cv2.VideoCapture(0)  # 0番カメラ（通常は内蔵カメラ）
@@ -121,6 +127,10 @@ while cap.isOpened():
             cv2.putText(frame, f"Mouth: {mouth_status} ({mar:.2f})", (30, 130),
                         cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (0, 255, 255) if mouth_status == "Open" else (100, 100, 100), 2)
+
+            # ----- Unityへデータ送信 -----
+            msg = f"{left_ear:.2f},{right_ear:.2f},{mar:.2f}"
+            sock.sendto(msg.encode('utf-8'), (UDP_IP, UDP_PORT))
 
     # ----------- ユーザー向けの案内表示 -----------
     cv2.putText(frame, "Press ESC to exit", (30, 170),
